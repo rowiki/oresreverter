@@ -1,0 +1,92 @@
+#!/usr/bin/python3
+# -*- coding: utf-8  -*-
+
+import json
+import pywikibot
+from pywikibot import config
+from datetime import datetime
+
+class BotReporter(object):
+	"""A singleton alowing the bot to write reports"""
+
+	def __init__(self, report_interval_s):
+		if config.family in config.usernames:
+			family = config.usernames[config.family]
+		else:
+			family = config.usernames['*']
+
+		if config.mylang in family:
+			self.user = family[config.mylang]
+		else:
+			self.user = family['*']
+		self.interval_s = report_interval_s
+		self.reset_report()
+
+	def reset_report(self):
+		self.start = datetime.now()
+		self.end = None
+		self.revert_success = 0
+		self.revert_fail = 0
+		self.near_revert = 0
+		self.all_changes = 0
+
+	def report_successful_revert(self):
+		self.revert_success += 1
+		self.all_changes += 1
+
+		self.maybe_publish_report()
+
+	def report_failed_revert(self):
+		self.revert_fail += 1
+		self.all_changes += 1
+
+		self.maybe_publish_report()
+
+	def report_near_revert(self):
+		self.near_revert += 1
+		self.all_changes += 1
+
+		self.maybe_publish_report()
+
+	def report_no_revert(self):
+		self.all_changes += 1
+		# This is by far the most common case, so no report publishing here; wait for an error instead
+
+	def build_report(self):
+		txt = "\n== Raport din {{subst:CURRENTYEAR}}-{{subst:CURRENTMONTH}}-{{subst:CURRENTDAY}} {{subst:LOCALTIME}} ==\n"
+		txt += f"*''Interval'': {self.start} - {self.end}\n"
+		txt += f"*''Editări anulate'': {self.revert_success} ({{{{dim|{self.revert_success * 100 / self.all_changes}|%}}}})\n"
+		txt += f"*''Editări cu probleme neanulate'': {self.near_revert} ({{{{dim|{self.near_revert * 100 / self.all_changes}|%}}}})\n"
+		txt += f"*''Anulări eșuate'': {self.revert_fail} ({{{{dim|{self.revert_fail * 100 / self.all_changes}|%}}}})\n"
+		txt += f"*''Schimbări verificate'': {self.all_changes} ({{{{dim|100|%}}}})\n"
+		
+		return txt
+
+	def maybe_publish_report(self):
+		self.end = datetime.now()
+		tdelta = self.end - self.start
+		if tdelta.total_seconds() < self.interval_s:
+			return
+
+		try:
+			page = pywikibot.Page(pywikibot.Site(), f"Utilizator:{self.user}/Rapoarte")
+			txt = page.get()
+			txt += self.build_report()
+			page.put(txt, "Adaug un raport de rulare")
+			self.reset_report()
+		except Exception as e:
+			print("Exception while saving report", e)
+			return
+
+	@property
+	def interval(self):
+		return self.interval_s
+
+	@interval.setter
+	def interval(self, report_interval_s):
+		self.interval_s = report_interval_s
+
+reporter = BotReporter(7 * 24 * 3600)
+
+def get_reporter():
+	return reporter

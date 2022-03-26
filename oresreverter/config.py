@@ -3,13 +3,16 @@
 
 import json
 import pywikibot
+from .report import get_reporter
 
 class BotConfig:
 	def __init__(self, site, page="MediaWiki:Revertbot.json"):
 		self.site = site
 		self.page = page
+		self.reporter = get_reporter()
 
 		self.load_config()
+		self.reporter.interval = int(self.report_interval)
 
 	def __repr__(self) -> str:
 		return str(self.__dict__)
