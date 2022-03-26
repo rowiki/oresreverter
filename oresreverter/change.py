@@ -9,7 +9,9 @@ class Change(object):
 		self._site = site
 		self._revid = info['revid']
 		self._title = info['title']
-		if type(info['oresscores']) == dict:
+		self._article = pywikibot.Page(self._site, self._title)
+		self._user = info['user']
+		if type(info.get('oresscores')) == dict:
 			self._score = info['oresscores']['damaging']['true']
 		else:
 			self._score = None
@@ -47,8 +49,26 @@ class Change(object):
 
 	@property
 	def article(self):
-		return pywikibot.Page(site, self._title)
+		return self._article
 
 	def treat(self):
-		if self.score >= self._cfg.threshhold:
-			print(self._title, self._revid)
+		if self.score < self._cfg.threshhold:
+			if self.score >= 0.909:
+				self._cfg.reporter.report_near_revert()
+			else:
+				self._cfg.reporter.report_no_revert()
+			return
+		if self._cfg.active:
+			expl = f"Se revine automat asupra unei modificări distructive (scor [[:mw:ORES|ORES]]: {self.score}). Greșit? Raportați [[WP:AA|aici]]."
+			try:
+				self._site.loadrevisions(self.article, content=False, total=10)
+				self._site.rollbackpage(self.article, user=self._user, summary=expl)
+			except Exception as e:
+				pywikibot.output(f"Error rollbacking page: {e}")
+				self._cfg.reporter.report_failed_revert()
+			else:
+				self._cfg.reporter.report_successful_revert()
+				pywikibot.output(f"The edit(s) made in {self._title} by {self._user} was rollbacked")
+
+		else:
+			pywikibot.output(f"Found revert candidate: [[{self._title}]]@{self._revid} (score={self.score})")

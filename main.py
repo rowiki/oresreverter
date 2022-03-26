@@ -34,7 +34,7 @@ def single_run():
 				processed_timestamp = processed_timestamp + timediff
 			change = Change(site, p, cfg)
 			change.treat()
-			pywikibot.output(p)
+			#pywikibot.output(p)
 			count += 1
 
 		if count == 0:
