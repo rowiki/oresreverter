@@ -3,6 +3,7 @@
 
 import pywikibot
 import requests
+from .userwarn import RevertedUser
 
 class Change(object):
 	def __init__(self, site, info, cfg):
@@ -10,7 +11,7 @@ class Change(object):
 		self._revid = info['revid']
 		self._title = info['title']
 		self._article = pywikibot.Page(self._site, self._title)
-		self._user = info['user']
+		self._user = RevertedUser(info['user'])
 		if type(info.get('oresscores')) == dict:
 			self._score = info['oresscores']['damaging']['true']
 		else:
@@ -59,16 +60,20 @@ class Change(object):
 				self._cfg.reporter.report_no_revert()
 			return
 		if self._cfg.active:
+			user = self._user.username
 			expl = f"Se revine automat asupra unei modificări distructive (scor [[:mw:ORES|ORES]]: {self.score}). Greșit? Raportați [[WP:AA|aici]]."
 			try:
 				self._site.loadrevisions(self.article, content=False, total=10)
-				self._site.rollbackpage(self.article, user=self._user, summary=expl)
+				self._site.rollbackpage(self.article, user=user, summary=expl)
+				self._user.warn_or_report(self.article)
 			except Exception as e:
 				pywikibot.output(f"Error rollbacking page: {e}")
 				self._cfg.reporter.report_failed_revert()
 			else:
 				self._cfg.reporter.report_successful_revert()
-				pywikibot.output(f"The edit(s) made in {self._title} by {self._user} was rollbacked")
+				pywikibot.output(f"The edit(s) made in {self._title} by {user} was rollbacked")
+			finally:
+				pass #TODO maybe warn here?
 
 		else:
 			pywikibot.output(f"Found revert candidate: [[{self._title}]]@{self._revid} (score={self.score})")
