@@ -9,9 +9,9 @@ class RevertedUser:
 	black_dot = "■"
 	block_level = 5
 	block_notify = "Wikipedia:Afișierul administratorilor"
-	block_message = "{{{{subst:Notificare blocare|{user}|2=Evaluare făcută automat. Dacă sunt erori, vă rugăm să le raportați [[Discuție Utilizator:PatrocleBot|aici]].}}}}"
+	block_message = "{{{{subst:Notificare blocare|{user}|2=Evaluare făcută automat. Dacă sunt erori, vă rugăm să le raportați [[Discuție Utilizator:PatrocleBot|aici]].}}}}--~~~~"
 	block_description = "Notificare pentru blocarea utilizatorului {user}"
-	warn_message = "{{{{subst:au-vandalism{level}{article}}}}}"
+	warn_message = "{{{{subst:au-vandalism{level}{article}}}}}--~~~~"
 	warn_description = "Avertizare de nivel {level} pentru vandalism în {article}"
 
 	def __init__(self, username: str):
@@ -22,11 +22,13 @@ class RevertedUser:
 	def get_last_warning_level(self) -> int:
 		try:
 			url = f"https://ro.wikipedia.org/w/api.php?action=parse&prop=sections&page={self.userpage}&format=json"
-			print(url)
 			r = requests.get(url)
 			if r.status_code != 200:
 				raise ValueError(f"Obtaining the last warning level failed with code {r.status_code}")
-			sections = r.json()["parse"]["sections"]
+			ret = r.json()
+			if "parse" not in ret or "sections" not in ret["parse"]:
+				return 0
+			sections = ret["parse"]["sections"]
 			for s in range(len(sections) - 1, 0, -1):
 				count = 0
 				line = sections[s]["line"]
@@ -47,18 +49,22 @@ class RevertedUser:
 		warn_message = self.warn_message.format(level=level, article=article_template)
 		description = self.warn_description.format(level=level, article=article or "Wikipedia")
 		up = pywikibot.Page(pywikibot.Site(), self.userpage)
-		text = up.get()
+		text = ""
+		if up.exists():
+			text = up.get()
 		text += "\n" + warn_message
-		print(warn_message, description)
+		#pywikibot.output(warn_message, description)
 		up.put(text, description)
 
 	def report(self):
 		warn_message = self.block_message.format(user=self.username)
 		description = self.block_description.format(user=self.username)
 		p = pywikibot.Page(pywikibot.Site(), self.block_notify)
-		text = p.get()
+		text = ""
+		if p.exists():
+			text = p.get()
 		text += "\n" + warn_message
-		print(warn_message, description)
+		#pywikibot.output(warn_message, description)
 		p.put(text, description)
 
 	def warn_or_report(self, article: str=None):

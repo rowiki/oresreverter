@@ -66,7 +66,7 @@ class Change(object):
 			try:
 				self._site.loadrevisions(self.article, content=False, total=10)
 				self._site.rollbackpage(self.article, user=user, summary=expl)
-				self._user.warn_or_report(self.article)
+				self._user.warn_or_report(self._title)
 			except Exception as e:
 				pywikibot.output(f"Error rollbacking page: {e}")
 				self._cfg.reporter.report_failed_revert()
