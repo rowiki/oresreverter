@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8  -*-
 
+import datetime
 import json
 import pywikibot
 from .report import get_reporter
@@ -10,7 +11,9 @@ class BotConfig:
 		self.ores_threshold = 0.909 # TODO: get from API
 		self.site = site
 		self.page = page
-		self.reporter = get_reporter()
+
+		tzoffset = datetime.timedelta(minutes=site.siteinfo['timeoffset'])
+		self.reporter = get_reporter(datetime.timezone(tzoffset))
 
 		self.load_config()
 

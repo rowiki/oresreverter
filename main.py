@@ -55,7 +55,7 @@ def single_run():
 			elif backoff_factor > min_backoff_factor:
 				backoff_factor = int(backoff_factor / 2)
 			backoff_time = backoff_factor * cfg.rc_interval_min
-			print(f"Treated {count} pages. Now sleeping for {backoff_time}s, then starting from {processed_timestamp}.", flush=True)
+			print(f"Treated {count} pages. Now sleeping for {backoff_time}s, then starting from {processed_timestamp} UTC.", flush=True)
 			time.sleep(backoff_time)
 		except Exception as e:
 			notify_maintainer(cfg.maintainer, e)

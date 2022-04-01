@@ -5,11 +5,12 @@ import json
 import pywikibot
 from pywikibot import config
 from datetime import datetime
+from datetime import timezone
 
 class BotReporter(object):
 	"""A singleton alowing the bot to write reports"""
 
-	def __init__(self, report_interval_s):
+	def __init__(self, report_interval_s, tz):
 		if config.family in config.usernames:
 			family = config.usernames[config.family]
 		else:
@@ -20,10 +21,11 @@ class BotReporter(object):
 		else:
 			self.user = family['*']
 		self.interval_s = report_interval_s
+		self.tz = tz
 		self.reset_report()
 
 	def reset_report(self):
-		self.start = datetime.now()
+		self.start = datetime.now(self.tz)
 		self.end = None
 		self.revert_success = 0
 		self.revert_fail = 0
@@ -63,7 +65,7 @@ class BotReporter(object):
 		return txt
 
 	def maybe_publish_report(self):
-		self.end = datetime.now()
+		self.end = datetime.now(self.tz)
 		tdelta = self.end - self.start
 		if tdelta.total_seconds() < self.interval_s:
 			return
@@ -86,7 +88,10 @@ class BotReporter(object):
 	def interval(self, report_interval_s):
 		self.interval_s = report_interval_s
 
-reporter = BotReporter(7 * 24 * 3600)
+reporter = BotReporter(7 * 24 * 3600, timezone.utc)
 
-def get_reporter():
+def get_reporter(timezone=None):
+	if timezone:
+		reporter.tz = timezone
+		reporter.reset_report()
 	return reporter
