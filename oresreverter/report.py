@@ -53,7 +53,7 @@ class BotReporter(object):
 		# This is by far the most common case, so no report publishing here; wait for an error instead
 
 	def build_report(self):
-		txt = "\n== Raport din {{subst:CURRENTYEAR}}-{{subst:CURRENTMONTH}}-{{subst:CURRENTDAY}} {{subst:LOCALTIME}} ==\n"
+		txt = "\n== Raport din {{subst:CURRENTYEAR}}-{{subst:CURRENTMONTH}}-{{subst:CURRENTDAY2}} {{subst:LOCALTIME}} ==\n"
 		txt += f"*''Interval'': {self.start} - {self.end}\n"
 		txt += f"*''Editări anulate'': {self.revert_success} ({{{{dim|{self.revert_success * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Editări cu probleme neanulate'': {self.near_revert} ({{{{dim|{self.near_revert * 100 / self.all_changes}|%}}}})\n"
