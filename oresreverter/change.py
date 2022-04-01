@@ -53,12 +53,13 @@ class Change(object):
 		return self._article
 
 	def treat(self):
-		if self.score < self._cfg.threshhold:
-			if self.score >= 0.909:
+		if self.score < self._cfg.threshold:
+			if self.score >= self._cfg.ores_threshold:
 				self._cfg.reporter.report_near_revert()
 			else:
 				self._cfg.reporter.report_no_revert()
 			return
+		self._cfg.load_config()
 		if self._cfg.active:
 			user = self._user.username
 			expl = f"Se revine automat asupra unei modificări distructive (scor [[:mw:ORES|ORES]]: {self.score}). Greșit? Raportați [[WP:AA|aici]]."
