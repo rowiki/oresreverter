@@ -9,10 +9,10 @@ class RevertedUser:
 	black_dot = "■"
 	block_level = 5
 	block_notify = "Wikipedia:Afișierul administratorilor"
-	block_message = "{{{{subst:Notificare blocare|{user}|2=Evaluare făcută automat. Dacă sunt erori, vă rugăm să le raportați [[Discuție Utilizator:PatrocleBot|aici]].}}}}--~~~~"
+	block_message = "{{{{subst:Notificare blocare|{user}|2={{{{subst:evaluare automată|url_erori=Discuție Utilizator:PatrocleBot}}}}}}}}--~~~~"
 	block_description = "Notificare pentru blocarea utilizatorului {user}"
-	warn_message = "{{{{subst:au-vandalism{level}{article}}}}}--~~~~"
-	warn_description = "Avertizare de nivel {level} pentru vandalism în {article}"
+	warn_message = "{{{{subst:au-vandalism{level}|{article}|2={{{{subst:evaluare automată}}}} }}}}--~~~~\n{{{{subst:SharedIPAdvice}}}}"
+	warn_description = "Avertizare de nivel {level} pentru vandalism la [[{article}]]"
 
 	def __init__(self, username: str):
 		self.username = username
@@ -47,7 +47,7 @@ class RevertedUser:
 		if article is not None:
 			article_template = "|" + article
 		warn_message = self.warn_message.format(level=level, article=article_template)
-		description = self.warn_description.format(level=level, article=article or "Wikipedia")
+		description = self.warn_description.format(level=level, article=article or "<articol necunoscut>")
 		up = pywikibot.Page(pywikibot.Site(), self.userpage)
 		text = ""
 		if up.exists():
