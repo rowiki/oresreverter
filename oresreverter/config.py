@@ -5,6 +5,7 @@ import datetime
 import json
 import pywikibot
 from .report import get_reporter
+from .changetrack import get_tracker
 
 class BotConfig:
 	def __init__(self, site, page="MediaWiki:Revertbot.json"):
@@ -14,6 +15,7 @@ class BotConfig:
 
 		tzoffset = datetime.timedelta(minutes=site.siteinfo['timeoffset'])
 		self.reporter = get_reporter(datetime.timezone(tzoffset))
+		self.tracker = get_tracker(datetime.timezone(tzoffset))
 
 		self.load_config()
 
@@ -31,3 +33,4 @@ class BotConfig:
 			data["threshold"] = self.ores_threshold
 		self.__dict__.update(data)
 		self.reporter.interval = int(self.report_interval)
+		self.tracker.timeout = int(self.article_follow_interval)

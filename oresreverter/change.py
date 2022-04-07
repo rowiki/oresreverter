@@ -52,29 +52,35 @@ class Change(object):
 	def article(self):
 		return self._article
 
+	def revert(self):
+		user = self._user.username
+		expl = f"Se revine automat asupra unei modificări distructive (scor [[:mw:ORES|ORES]]: {self.score}). Greșit? Raportați [[WP:AA|aici]]."
+		try:
+			self._cfg.tracker.add_change(self._title, user)
+			self._site.loadrevisions(self.article, content=False, total=10)
+			self._site.rollbackpage(self.article, user=user, summary=expl)
+			self._user.warn_or_report(self._title)
+		except Exception as e:
+			pywikibot.output(f"Error rollbacking page: {e}")
+			self._cfg.reporter.report_failed_revert()
+		else:
+			self._cfg.reporter.report_successful_revert()
+			pywikibot.output(f"The edit(s) made in {self._title} by {user} was rollbacked")
+		finally:
+			pass #TODO maybe warn here?
+
 	def treat(self):
 		if self.score < self._cfg.threshold:
 			if self.score >= self._cfg.ores_threshold:
-				self._cfg.reporter.report_near_revert()
+				if self._cfg.tracker.tracked_change(self._title, self._user.username):
+					self.revert()
+				else:
+					self._cfg.reporter.report_near_revert()
 			else:
 				self._cfg.reporter.report_no_revert()
 			return
 		self._cfg.load_config()
 		if self._cfg.active:
-			user = self._user.username
-			expl = f"Se revine automat asupra unei modificări distructive (scor [[:mw:ORES|ORES]]: {self.score}). Greșit? Raportați [[WP:AA|aici]]."
-			try:
-				self._site.loadrevisions(self.article, content=False, total=10)
-				self._site.rollbackpage(self.article, user=user, summary=expl)
-				self._user.warn_or_report(self._title)
-			except Exception as e:
-				pywikibot.output(f"Error rollbacking page: {e}")
-				self._cfg.reporter.report_failed_revert()
-			else:
-				self._cfg.reporter.report_successful_revert()
-				pywikibot.output(f"The edit(s) made in {self._title} by {user} was rollbacked")
-			finally:
-				pass #TODO maybe warn here?
-
+			self.revert()
 		else:
 			pywikibot.output(f"Found revert candidate: [[{self._title}]]@{self._revid} (score={self.score})")
