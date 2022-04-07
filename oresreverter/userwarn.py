@@ -11,7 +11,7 @@ class RevertedUser:
 	block_notify = "Wikipedia:Afișierul administratorilor"
 	block_message = "{{{{subst:Notificare blocare|{user}|2={{{{subst:evaluare automată|url_erori=Discuție Utilizator:PatrocleBot}}}}}}}}--~~~~"
 	block_description = "Notificare pentru blocarea utilizatorului {user}"
-	warn_message = "{{{{subst:au-vandalism{level}|{article}|2={{{{subst:evaluare automată}}}} }}}}--~~~~\n{{{{subst:SharedIPAdvice}}}}"
+	warn_message = "{{{{subst:au-vandalism{level}{article}|2={{{{subst:evaluare automată}}}} }}}}--~~~~\n{{{{subst:SharedIPAdvice}}}}"
 	warn_description = "Avertizare de nivel {level} pentru vandalism la [[{article}]]"
 
 	def __init__(self, username: str):
@@ -20,6 +20,7 @@ class RevertedUser:
 		self.userpage = f"Discuție_Utilizator:{self.username}"
 
 	def get_last_warning_level(self) -> int:
+		count = 0
 		try:
 			url = f"https://ro.wikipedia.org/w/api.php?action=parse&prop=sections&page={self.userpage}&format=json"
 			r = requests.get(url)
@@ -29,8 +30,7 @@ class RevertedUser:
 			if "parse" not in ret or "sections" not in ret["parse"]:
 				return 0
 			sections = ret["parse"]["sections"]
-			for s in range(len(sections) - 1, 0, -1):
-				count = 0
+			for s in range(len(sections) - 1, -1, -1):
 				line = sections[s]["line"]
 				loc = line.find(self.black_dot)
 				if loc > -1:
@@ -40,7 +40,8 @@ class RevertedUser:
 					return count
 		except Exception as e:
 			print(e)
-			return 0
+			count = 0
+		return count
 
 	def warn(self, level: int, article: str):
 		article_template = ""
@@ -53,7 +54,7 @@ class RevertedUser:
 		if up.exists():
 			text = up.get()
 		text += "\n" + warn_message
-		#pywikibot.output(warn_message, description)
+		pywikibot.output(warn_message, description)
 		up.put(text, description)
 
 	def report(self):
@@ -64,7 +65,7 @@ class RevertedUser:
 		if p.exists():
 			text = p.get()
 		text += "\n" + warn_message
-		#pywikibot.output(warn_message, description)
+		pywikibot.output(warn_message, description)
 		p.put(text, description)
 
 	def warn_or_report(self, article: str=None):
