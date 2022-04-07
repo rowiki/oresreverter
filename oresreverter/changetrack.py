@@ -17,6 +17,8 @@ class ChangeTracker:
 
 	def add_change(self, page, user):
 		now = datetime.now(self.tz)
+		if page not in self.changelist:
+			self.changelist[page] = {}
 		self.changelist[page][user] = now
 
 	def tracked_change(self, page, user):
@@ -27,7 +29,7 @@ class ChangeTracker:
 		if user not in self.changelist[page]:
 			return False
 		tdelta = now - self.changelist[page][user]
-		if tdelta.total_seconds <= self.timeout:
+		if tdelta.total_seconds() <= self.timeout:
 			return True
 		else:
 			return False
@@ -36,7 +38,7 @@ class ChangeTracker:
 		for page in self.changelist:
 			for user in self.changelist[page]:
 				tdelta = now - self.changelist[page][user]
-				if tdelta.total_seconds > self.timeout:
+				if tdelta.total_seconds() > self.timeout:
 					del self.changelist[page][user]
 					if len(self.changelist[page]) == 0:
 						del self.changelist[page]
