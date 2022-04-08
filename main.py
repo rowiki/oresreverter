@@ -14,7 +14,7 @@ def notify_maintainer(user, exception):
 		page = pywikibot.Page(pywikibot.Site(), user, ns=3)
 		text = page.get()
 		text += error
-		#page.put(text, "Eroare")
+		page.put(text, "Eroare")
 		pywikibot.output(error)
 	except:
 		pywikibot.output(error)

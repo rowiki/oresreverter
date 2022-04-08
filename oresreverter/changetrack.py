@@ -35,8 +35,8 @@ class ChangeTracker:
 			return False
 
 	def cleanup_list(self, now):
-		for page in self.changelist:
-			for user in self.changelist[page]:
+		for page in copy(self.changelist):
+			for user in copy(self.changelist[page]):
 				tdelta = now - self.changelist[page][user]
 				if tdelta.total_seconds() > self.timeout:
 					del self.changelist[page][user]
