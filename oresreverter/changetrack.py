@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8  -*-
 
+from copy import copy
 import json
 import pywikibot
 from pywikibot import config
