@@ -92,6 +92,7 @@ class Change(object):
 				self._cfg.reporter.report_no_revert()
 			return
 		self._cfg.load_config()
+		self._site.login()
 		if self._cfg.active:
 			self.revert()
 		else:
