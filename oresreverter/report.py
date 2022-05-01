@@ -23,6 +23,7 @@ class BotReporter(object):
 		self.interval_s = report_interval_s
 		self.tz = tz
 		self.reset_report()
+		self.score_matrix = [[0,0],[0,0]]
 
 	def reset_report(self):
 		self.start = datetime.now(self.tz)
@@ -31,6 +32,7 @@ class BotReporter(object):
 		self.revert_fail = 0
 		self.near_revert = 0
 		self.all_changes = 0
+		self.score_matrix = [[0,0],[0,0]]
 
 	def report_successful_revert(self):
 		self.revert_success += 1
@@ -44,15 +46,20 @@ class BotReporter(object):
 
 		self.maybe_publish_report()
 
-	def report_near_revert(self):
+	def report_near_revert(self, damage, gf):
 		self.near_revert += 1
 		self.all_changes += 1
+
+		self.score_matrix[damage][gf] += 1
+		print("Matrix:", damage, gf)
 
 		self.maybe_publish_report()
 
 	def report_no_revert(self):
 		self.all_changes += 1
 		# This is by far the most common case, so no report publishing here; wait for an error instead
+
+		self.maybe_publish_report()
 
 	def build_report(self):
 		txt = "\n== Raport din {{subst:CURRENTYEAR}}-{{subst:CURRENTMONTH}}-{{subst:CURRENTDAY2}} {{subst:LOCALTIME}} ==\n"
@@ -61,6 +68,7 @@ class BotReporter(object):
 		txt += f"*''Editări cu probleme neanulate'': {self.near_revert} ({{{{dim|{self.near_revert * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Anulări eșuate'': {self.revert_fail} ({{{{dim|{self.revert_fail * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Schimbări verificate'': {self.all_changes} ({{{{dim|100|%}}}})\n"
+		txt += f"\n{{|class=wikitable\n|-\n!Damaging\Goodfaith || Posibil || Probabil\n|-\n| Posibil || {self.score_matrix[0][0]} || {self.score_matrix[0][1]} \n|-\n| Probabil || {self.score_matrix[1][0]} || {self.score_matrix[1][1]} \n|}}"
 		
 		return txt
 

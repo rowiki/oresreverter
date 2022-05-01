@@ -16,6 +16,10 @@ class Change(object):
 			self._score = info['oresscores']['damaging']['true']
 		else:
 			self._score = None
+		if type(info.get('oresscores')) == dict:
+			self._gf_score = info['oresscores']['goodfaith']['true']
+		else:
+			self._gf_score = None
 		self._cfg = cfg
 
 	def get_score(self):
@@ -27,14 +31,15 @@ class Change(object):
 
 		dbname = self._site.dbName()
 		# https://ores.wikimedia.org/v3/scores/rowiki/14806453/damaging
-		r = requests.get(f"https://ores.wikimedia.org/v3/scores/{dbname}/{self._revid}/damaging")
+		r = requests.get(f"https://ores.wikimedia.org/v3/scores/{dbname}/{self._revid}")
 		if r.status_code != 200:
 			raise ValueError(f"Obtaining the ORES score failed with code {r.status_code}")
 		try:
 			resp = r.json()
 			self._score = resp[dbname]["scores"][str(self._revid)]["damaging"]["score"]["probability"]["true"]
+			self._gf_score = resp[dbname]["scores"][str(self._revid)]["goodfaith"]["score"]["probability"]["true"]
 		except Exception as e:
-			raise ValueError(f"Obtaining the ORES score failed with error {e}. URL was https://ores.wikimedia.org/v3/scores/{dbname}/{self._revid}/damaging")
+			raise ValueError(f"Obtaining the ORES score failed with error {e}. URL was https://ores.wikimedia.org/v3/scores/{dbname}/{self._revid}")
 		finally:
 			r.close()
 
@@ -70,12 +75,19 @@ class Change(object):
 			pass #TODO maybe warn here?
 
 	def treat(self):
+		print(self.revid, self.score, self._gf_score)
 		if self.score < self._cfg.threshold:
-			if self.score >= self._cfg.ores_threshold:
-				if self._cfg.tracker.tracked_change(self._title, self._user.username):
+			if self.score >= self._cfg.ores['damaging']['possible']:
+				if self.score >= self._cfg.ores['damaging']['likely'] and self._cfg.tracker.tracked_change(self._title, self._user.username):
 					self.revert()
-				else:
-					self._cfg.reporter.report_near_revert()
+				elif self._gf_score <= self._cfg.ores['goodfaith']['possible']:
+					dm = 0
+					gf = 0
+					if self.score >= self._cfg.ores['damaging']['likely']:
+						dm = 1
+					if self._gf_score <= self._cfg.ores['goodfaith']['likely']:
+						gf = 1
+					self._cfg.reporter.report_near_revert(dm, gf)
 			else:
 				self._cfg.reporter.report_no_revert()
 			return
