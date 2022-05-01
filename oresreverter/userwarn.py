@@ -8,7 +8,7 @@ import requests
 class RevertedUser:
 	black_dot = "■"
 	block_level = 5
-	block_notify = "Wikipedia:Afișierul administratorilor"
+	block_notify = "Wikipedia:Reclamații"
 	block_message = "{{{{subst:Notificare blocare|{user}|2={{{{subst:evaluare automată|url_erori=Discuție Utilizator:PatrocleBot}}}}}}}}--~~~~"
 	block_description = "Notificare pentru blocarea utilizatorului {user}"
 	warn_message = "{{{{subst:au-vandalism{level}{article}|2={{{{subst:evaluare automată}}}} }}}}--~~~~\n{{{{subst:SharedIPAdvice}}}}"
@@ -55,7 +55,7 @@ class RevertedUser:
 			text = up.get()
 		text += "\n" + warn_message
 		pywikibot.output(warn_message, description)
-		up.put(text, description)
+		up.put(text, summary=description)
 
 	def report(self):
 		warn_message = self.block_message.format(user=self.username)
@@ -66,7 +66,7 @@ class RevertedUser:
 			text = p.get()
 		text += "\n" + warn_message
 		pywikibot.output(warn_message, description)
-		p.put(text, description)
+		p.put(text, summary=description, botflag=False)
 
 	def warn_or_report(self, article: str=None):
 		level = 1 + self.get_last_warning_level()
