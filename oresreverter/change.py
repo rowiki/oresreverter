@@ -50,6 +50,12 @@ class Change(object):
 		return self._score
 
 	@property
+	def gf_score(self):
+		if self._gf_score is None:
+			self.get_score()
+		return self._gf_score
+
+	@property
 	def revid(self):
 		return self._revid
 
@@ -57,9 +63,24 @@ class Change(object):
 	def article(self):
 		return self._article
 
+	def likely_damaging(self):
+		return self.score >= self._cfg.ores['damaging']['likely']
+
+	def possibly_damaging(self):
+		return self.score >= self._cfg.ores['damaging']['possible']
+
+	def likely_badfaith(self):
+		return self.gf_score <= self._cfg.ores['goodfaith']['likely']
+
+	def possibly_badfaith(self):
+		return self.gf_score <= self._cfg.ores['goodfaith']['possible']
+
 	def revert(self):
+		if not self._cfg.active:
+			pywikibot.output(f"Found revert candidate: [[{self._title}]]@{self._revid} (score={self.score}/gf={self.gf_score})")
+			return
 		user = self._user.username
-		expl = f"Se revine automat asupra unei modificări distructive (scor [[:mw:ORES|ORES]]: {self.score}). Greșit? Raportați [[WP:AA|aici]]."
+		expl = f"Se revine automat asupra unei modificări distructive (scoruri [[:mw:ORES|ORES]]: {self.score}/{self.gf_score}). Greșit? Raportați [[WP:AA|aici]]."
 		try:
 			self._cfg.tracker.add_change(self._title, user)
 			self._site.loadrevisions(self.article, content=False, total=10)
@@ -75,25 +96,20 @@ class Change(object):
 			pass #TODO maybe warn here?
 
 	def treat(self):
-		print(self.revid, self.score, self._gf_score)
-		if self.score < self._cfg.threshold:
-			if self.score >= self._cfg.ores['damaging']['possible']:
-				if self.score >= self._cfg.ores['damaging']['likely'] and self._cfg.tracker.tracked_change(self._title, self._user.username):
+		#print(self.revid, self.score, self.gf_score)
+		if self.score >= self._cfg.threshold:
+			self._cfg.load_config()
+			self._site.login()
+			self.revert()
+		else:
+			if self.likely_damaging():
+				if self._cfg.tracker.tracked_change(self._title, self._user.username) or self.likely_badfaith():
 					self.revert()
-				elif self._gf_score <= self._cfg.ores['goodfaith']['possible']:
-					dm = 0
-					gf = 0
-					if self.score >= self._cfg.ores['damaging']['likely']:
-						dm = 1
-					if self._gf_score <= self._cfg.ores['goodfaith']['likely']:
-						gf = 1
-					self._cfg.reporter.report_near_revert(dm, gf)
+				elif self.possibly_badfaith():
+					self._cfg.reporter.report_near_revert()
+			elif self.possibly_damaging() and self.likely_badfaith():
+				self._cfg.reporter.report_near_revert()
 			else:
 				self._cfg.reporter.report_no_revert()
 			return
-		self._cfg.load_config()
-		self._site.login()
-		if self._cfg.active:
-			self.revert()
-		else:
-			pywikibot.output(f"Found revert candidate: [[{self._title}]]@{self._revid} (score={self.score})")
+		

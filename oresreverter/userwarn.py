@@ -54,7 +54,8 @@ class RevertedUser:
 		if up.exists():
 			text = up.get()
 		text += "\n" + warn_message
-		pywikibot.output(warn_message, description)
+		pywikibot.info(warn_message)
+		pywikibot.info(description)
 		up.put(text, summary=description)
 
 	def report(self):
@@ -65,7 +66,8 @@ class RevertedUser:
 		if p.exists():
 			text = p.get()
 		text += "\n" + warn_message
-		pywikibot.output(warn_message, description)
+		pywikibot.info(warn_message)
+		pywikibot.info(description)
 		p.put(text, summary=description, botflag=False)
 
 	def warn_or_report(self, article: str=None):
