@@ -5,13 +5,16 @@ import json
 import pywikibot
 import requests
 
+from pywikibot.tools import is_ip_address
+
 class RevertedUser:
 	black_dot = "■"
 	block_level = 5
 	block_notify = "Wikipedia:Reclamații"
 	block_message = "{{{{subst:Notificare blocare|{user}|2={{{{subst:evaluare automată|url_erori=Discuție Utilizator:PatrocleBot}}}}}}}}--~~~~"
 	block_description = "Notificare pentru blocarea utilizatorului {user}"
-	warn_message = "{{{{subst:au-vandalism{level}{article}|2={{{{subst:evaluare automată}}}} }}}}--~~~~\n{{{{subst:SharedIPAdvice}}}}"
+	warn_message = "{{{{subst:au-vandalism{level}{article}|2={{{{subst:evaluare automată}}}} }}}}--~~~~"
+	ip_advice = "{{{{subst:SharedIPAdvice}}}}"
 	warn_description = "Avertizare de nivel {level} pentru vandalism la [[{article}]]"
 
 	def __init__(self, username: str):
@@ -54,6 +57,8 @@ class RevertedUser:
 		if up.exists():
 			text = up.get()
 		text += "\n" + warn_message
+		if is_ip_address(self.username):
+			text += "\n" + ip_advice
 		pywikibot.info(warn_message)
 		pywikibot.info(description)
 		up.put(text, summary=description)
