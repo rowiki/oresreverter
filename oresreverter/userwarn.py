@@ -35,9 +35,12 @@ class RevertedUser:
 			sections = ret["parse"]["sections"]
 			for s in range(len(sections) - 1, -1, -1):
 				line = sections[s]["line"]
+				if line == "Blocat":
+					# user blocked, reset the warnings
+					return 0
 				loc = line.find(self.black_dot)
 				if loc > -1:
-					for idx in range(loc, loc+5):
+					for idx in range(loc, loc + block_level):
 						if line[idx] == self.black_dot:
 							count += 1
 					return count
