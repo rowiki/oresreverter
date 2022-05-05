@@ -56,12 +56,13 @@ class BotReporter(object):
 
 
 	def build_report(self):
-		txt = "\n== Raport din {{subst:CURRENTYEAR}}-{{subst:CURRENTMONTH}}-{{subst:CURRENTDAY2}} {{subst:LOCALTIME}} ==\n"
+		txt = "\n== Raport din {{subst:LOCALYEAR}}-{{subst:LOCALMONTH}}-{{subst:LOCALDAY2}} {{subst:LOCALTIME}} ==\n"
 		txt += f"*''Interval'': {self.start} - {self.end}\n"
 		txt += f"*''Editări anulate'': {self.revert_success} ({{{{dim|{self.revert_success * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Editări cu probleme neanulate'': {self.near_revert} ({{{{dim|{self.near_revert * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Anulări eșuate'': {self.revert_fail} ({{{{dim|{self.revert_fail * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Schimbări verificate'': {self.all_changes} ({{{{dim|100|%}}}})\n"
+		txt += "~~~~\n"
 		
 		return txt
 
