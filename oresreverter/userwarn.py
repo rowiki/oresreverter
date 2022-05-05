@@ -61,7 +61,7 @@ class RevertedUser:
 			text = up.get()
 		text += "\n" + warn_message
 		if is_ip_address(self.username):
-			text += "\n" + ip_advice
+			text += "\n" + self.ip_advice
 		pywikibot.info(warn_message)
 		pywikibot.info(description)
 		up.put(text, summary=description)
