@@ -73,7 +73,9 @@ class RevertedUser:
 		text = ""
 		if p.exists():
 			text = p.get()
-		text += "\n" + warn_message
+		# TODO: fix this hardcoding
+		end_of_header = "{{Sfârșit tabel căsuțe}}"
+		text = text.replace(end_of_header, end_of_header + "\n\n" + warn_message)
 		pywikibot.info(warn_message)
 		pywikibot.info(description)
 		p.put(text, summary=description, botflag=False)
