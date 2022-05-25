@@ -14,7 +14,7 @@ class RevertedUser:
 	block_message = "{{{{subst:Notificare blocare|{user}|2={{{{subst:evaluare automată|url_erori=Discuție Utilizator:PatrocleBot}}}}}}}}--~~~~"
 	block_description = "Notificare pentru blocarea utilizatorului {user}"
 	warn_message = "{{{{subst:au-vandalism{level}{article}|2={{{{subst:evaluare automată}}}} }}}}--~~~~"
-	ip_advice = "{{{{subst:SharedIPAdvice}}}}"
+	ip_advice = "{{subst:SharedIPAdvice}}"
 	warn_description = "Avertizare de nivel {level} pentru vandalism la [[{article}]]"
 
 	def __init__(self, username: str):
@@ -35,12 +35,13 @@ class RevertedUser:
 			sections = ret["parse"]["sections"]
 			for s in range(len(sections) - 1, -1, -1):
 				line = sections[s]["line"]
+				print(line)
 				if line == "Blocat":
 					# user blocked, reset the warnings
 					return 0
 				loc = line.find(self.black_dot)
 				if loc > -1:
-					for idx in range(loc, loc + block_level):
+					for idx in range(loc, loc + self.block_level):
 						if line[idx] == self.black_dot:
 							count += 1
 					return count
@@ -87,3 +88,4 @@ class RevertedUser:
 			self.report()
 		else:
 			self.warn(level, article)
+
