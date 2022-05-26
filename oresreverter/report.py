@@ -29,6 +29,8 @@ class BotReporter(object):
 		self.end = None
 		self.revert_success = 0
 		self.revert_fail = 0
+		self.patrol_success = 0
+		self.patrol_fail = 0
 		self.near_revert = 0
 		self.all_changes = 0
 
@@ -40,6 +42,18 @@ class BotReporter(object):
 
 	def report_failed_revert(self):
 		self.revert_fail += 1
+		self.all_changes += 1
+
+		self.maybe_publish_report()
+
+	def report_successful_patrol(self):
+		self.patrol_success += 1
+		self.all_changes += 1
+
+		self.maybe_publish_report()
+
+	def report_failed_patrol(self):
+		self.patrol_fail += 1
 		self.all_changes += 1
 
 		self.maybe_publish_report()
@@ -61,6 +75,8 @@ class BotReporter(object):
 		txt += f"*''Editări anulate'': {self.revert_success} ({{{{dim|{self.revert_success * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Editări cu probleme neanulate'': {self.near_revert} ({{{{dim|{self.near_revert * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Anulări eșuate'': {self.revert_fail} ({{{{dim|{self.revert_fail * 100 / self.all_changes}|%}}}})\n"
+		txt += f"*''Editări patrulate'': {self.patrol_success} ({{{{dim|{self.patrol_success * 100 / self.all_changes}|%}}}})\n"
+		txt += f"*''Patrulări eșuate'': {self.patrol_fail} ({{{{dim|{self.patrol_fail * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Schimbări verificate'': {self.all_changes} ({{{{dim|100|%}}}})\n"
 		txt += "~~~~\n"
 		
