@@ -86,7 +86,7 @@ class BotReporter(object):
 		self.end = datetime.now(self.tz)
 		tdelta = self.end - self.start
 		
-		if self.dry_run:
+		if self.dry_run and self.all_changes % 100 == 0:
 			self.publish_cli_report()
 		else:
 			if tdelta.total_seconds() < self.interval_s:

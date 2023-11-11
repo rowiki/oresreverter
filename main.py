@@ -22,20 +22,29 @@ def notify_maintainer(user, exception):
 
 def single_run():
 	dry_run = False
+	page="MediaWiki:Revertbot.json"
+	model=None
+
 	local_args = pywikibot.handle_args()
 	for arg in local_args:
 		# Handle args whether we are running in dry run mode
 		if arg.startswith('-dry-run'):
 			dry_run = True
+		if arg.startswith('-cfg:'):
+			page = arg.split(':', maxsplit=1)[1]
+		if arg.startswith('-model:'):
+			model = arg.split(':')[1]
 
 	site = pywikibot.Site("ro", "wikipedia")
 	site.login()
 	processed_timestamp = None
 
-	cfg = BotConfig(site, dry_run=dry_run)
+	cfg = BotConfig(site, page=page, model_name=model, dry_run=dry_run)
 	backoff_factor = 1
 	min_backoff_factor = 1
 	max_backoff_factor = int((cfg.rc_interval_max + cfg.rc_interval_min - 1) / cfg.rc_interval_min)
+
+	pywikibot.output(f"Started bot with config {page}, model {cfg.model_name}")
 
 	while True:
 		try:

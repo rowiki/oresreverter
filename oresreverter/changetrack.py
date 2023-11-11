@@ -3,8 +3,6 @@
 
 from copy import copy
 import json
-import pywikibot
-from pywikibot import config
 from datetime import datetime
 from datetime import timezone
 
