@@ -1,12 +1,14 @@
 #!/usr/bin/python3
 # -*- coding: utf-8  -*-
+# type: ignore
 
+from oresreverter.config import BotConfig
 import pywikibot
 import requests
 from .userwarn import RevertedUser
 
 class Change(object):
-	def __init__(self, site, info, cfg):
+	def __init__(self, site, info, cfg: BotConfig):
 		self._site = site
 		self._revid = info['revid']
 		self._title = info['title']

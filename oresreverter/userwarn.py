@@ -81,7 +81,7 @@ class RevertedUser:
 		pywikibot.info(description)
 		p.put(text, summary=description, botflag=False)
 
-	def warn_or_report(self, article: str=None):
+	def warn_or_report(self, article: str):
 		level = 1 + self.get_last_warning_level()
 		if level >= self.block_level:
 			self.warn(self.block_level, article)

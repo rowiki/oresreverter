@@ -48,7 +48,7 @@ class ChangeTracker:
 
 tracker = ChangeTracker(timezone.utc, 120)
 
-def get_tracker(timezone=None, timeout_s=120):
+def get_tracker(timezone=None, timeout_s=120) -> ChangeTracker:
 	tracker.timeout = timeout_s
 	if timezone:
 		tracker.tz = timezone
