@@ -101,7 +101,10 @@ class Change(object):
 		finally:
 			pass #TODO maybe warn here?
 
-	def patrol(self):
+	def patrol(self) -> None:
+		if not self._cfg.active:
+			pywikibot.output(f"Found patrol candidate: [[{self._title}]]@{self._revid} (score={self.score}/gf={self.gf_score})")
+			return
 		try:
 			list(self._site.patrol(revid=self._revid))
 		except Exception as e:
@@ -111,7 +114,7 @@ class Change(object):
 			self._cfg.reporter.report_successful_patrol()
 			pywikibot.output(f"The edit(s) made in {self._title} by {self._user.username} was patrolled.")
 
-	def treat(self):
+	def treat(self) -> None:
 		print(self._title, self.revid, self.score, self.gf_score, flush=True)
 		if self.score >= self._cfg.threshold:
 			self._cfg.load_config()

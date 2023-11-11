@@ -22,6 +22,7 @@ class BotReporter(object):
 			self.user = family['*']
 		self.interval_s = report_interval_s
 		self.tz = tz
+		self.dry_run = False
 		self.reset_report()
 
 	def reset_report(self):
@@ -68,9 +69,8 @@ class BotReporter(object):
 		self.all_changes += 1
 		# This is by far the most common case, so no report publishing here; wait for an error instead
 
-
-	def build_report(self):
-		txt = "\n== Raport din {{subst:LOCALYEAR}}-{{subst:LOCALMONTH}}-{{subst:LOCALDAY2}} {{subst:LOCALTIME}} ==\n"
+	def build_report(self) -> str:
+		txt = "\n== Raport din {{subst:CURRENTYEAR}}-{{subst:CURRENTMONTH}}-{{subst:CURRENTDAY2}} {{subst:LOCALTIME}} ==\n"
 		txt += f"*''Interval'': {self.start} - {self.end}\n"
 		txt += f"*''Editări anulate'': {self.revert_success} ({{{{dim|{self.revert_success * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Editări cu probleme neanulate'': {self.near_revert} ({{{{dim|{self.near_revert * 100 / self.all_changes}|%}}}})\n"
@@ -85,9 +85,18 @@ class BotReporter(object):
 	def maybe_publish_report(self):
 		self.end = datetime.now(self.tz)
 		tdelta = self.end - self.start
-		if tdelta.total_seconds() < self.interval_s:
-			return
+		
+		if self.dry_run:
+			self.publish_cli_report()
+		else:
+			if tdelta.total_seconds() < self.interval_s:
+				return
+			self.publish_wiki_report()
 
+	def publish_cli_report(self):
+		pywikibot.output(self.build_report())
+
+	def publish_wiki_report(self) -> None:
 		try:
 			page = pywikibot.Page(pywikibot.Site(), f"Utilizator:{self.user}/Rapoarte")
 			txt = page.get()
@@ -108,8 +117,9 @@ class BotReporter(object):
 
 reporter = BotReporter(7 * 24 * 3600, timezone.utc)
 
-def get_reporter(timezone=None):
+def get_reporter(timezone=None, dry_run=False) -> BotReporter:
 	if timezone:
 		reporter.tz = timezone
+		reporter.dry_run = dry_run
 		reporter.reset_report()
 	return reporter

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8  -*-
+# type: ignore
 
 import datetime
 import pywikibot
@@ -20,10 +21,18 @@ def notify_maintainer(user, exception):
 		pywikibot.output(error)
 
 def single_run():
+	dry_run = False
+	local_args = pywikibot.handle_args()
+	for arg in local_args:
+		# Handle args whether we are running in dry run mode
+		if arg.startswith('-dry-run'):
+			dry_run = True
+
 	site = pywikibot.Site("ro", "wikipedia")
 	site.login()
-	cfg = BotConfig(site)
 	processed_timestamp = None
+
+	cfg = BotConfig(site, dry_run=dry_run)
 	backoff_factor = 1
 	min_backoff_factor = 1
 	max_backoff_factor = int((cfg.rc_interval_max + cfg.rc_interval_min - 1) / cfg.rc_interval_min)
@@ -59,7 +68,10 @@ def single_run():
 			print(f"Treated {count} pages. Now sleeping for {backoff_time}s, then starting from {processed_timestamp} UTC.", flush=True)
 			time.sleep(backoff_time)
 		except Exception as e:
-			notify_maintainer(cfg.maintainer, e)
+			if dry_run:
+				raise e
+			else:
+				notify_maintainer(cfg.maintainer, e)
 
 if __name__ == "__main__":
 	single_run()
