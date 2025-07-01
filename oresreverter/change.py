@@ -13,7 +13,7 @@ class Change(object):
 		self._revid = info['revid']
 		self._title = info['title']
 		self._article = pywikibot.Page(self._site, self._title)
-		self._user = RevertedUser(info['user'])
+		self._user = RevertedUser(info['user'], cfg.article_follow_interval)
 		self._score = None
 		self._cfg = cfg
 		self._model = cfg.model
