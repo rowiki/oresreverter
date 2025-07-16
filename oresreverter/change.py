@@ -1,17 +1,40 @@
 #!/usr/bin/python3
 # -*- coding: utf-8  -*-
 # type: ignore
+import time
+from contextlib import suppress
+from threading import Thread
 
-from .config import BotConfig
-import pywikibot
 import requests
+from talkpage.blp import add_blp
+
+import pywikibot
+from pywikibot.exceptions import NoPageError
+from .config import BotConfig
 from .userwarn import RevertedUser
+
+
+def item_is_in_list(statement_list: list, itemlist: list[str]) -> bool:
+	"""Verify if statement list contains at least one item from the itemlist.
+
+param statement_list: Statement list
+param itemlist: List of values (string)
+return: Whether the item matches
+"""
+	for seq in statement_list or []:
+		with suppress(AttributeError):  # Ignore NoneType error
+			isinlist = seq.getTarget().getID()
+			if isinlist in itemlist:
+				return True
+	return False
+
 
 class Change(object):
 	def __init__(self, site, info, cfg: BotConfig):
 		self._site = site
 		self._revid = info['revid']
 		self._title = info['title']
+		self._type = info['type']
 		self._article = pywikibot.Page(self._site, self._title)
 		self._user = RevertedUser(info['user'], cfg.article_follow_interval)
 		self._score = None
@@ -77,7 +100,29 @@ class Change(object):
 			self._cfg.reporter.report_successful_patrol()
 			pywikibot.output(f"The edit(s) made in {self._title} by {self._user.username} was patrolled.")
 
+	def work_on_blps(self) -> None:
+		if self._type != 'new':
+			return
+		#pywikibot.output(f"Adding {self._type} blp to " + self._title)
+		pywikibot.sleep(5 * 60) # wait 5 minutes before adding BLP
+		if not self._article.exists():
+			return
+		try:
+			item = self._article.data_item()
+		except NoPageError as e:
+			return
+		# humans
+		if (item is not None and item.get() and
+                item_is_in_list(item.claims.get('P31'), ['Q5'])):
+			pywikibot.output(self._title + " is human...")
+			if 'P569' in item.claims and 'P570' not in item.claims:
+				#pywikibot.output(item.claims)
+				add_blp(self._article.toggleTalkPage())
+
 	def treat(self) -> None:
+		# First, run the maintenance scripts
+		thread = Thread(target=self.work_on_blps)
+		thread.start()
 		#pywikibot.output(self._title, self.revid, self.score, flush=True)
 		# failed to get score from the model
 		if self.score == 0:
@@ -99,4 +144,3 @@ class Change(object):
 			else:
 				self._cfg.reporter.report_no_revert()
 			return
-		

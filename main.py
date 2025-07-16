@@ -62,9 +62,9 @@ def single_run():
 					processed_timestamp = pywikibot.Timestamp.fromISOformat(p.get('timestamp'))
 					timediff = datetime.timedelta(seconds=1)
 					processed_timestamp = processed_timestamp + timediff
+				#pywikibot.output(p)
 				change = Change(site, p, cfg)
 				change.treat()
-				#pywikibot.output(p)
 				count += 1
 
 			if count == 0:

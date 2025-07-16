@@ -14,7 +14,7 @@ def recent_deaths_generator():
     """
     Generator function to yield recent deaths.
     """
-    date_since = date_since = (pywikibot.Timestamp.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
+    date_since = (pywikibot.Timestamp.now() - datetime.timedelta(days=7)).strftime("%Y-%m-%d")
     query = f"""SELECT ?item WHERE {{
   ?item wdt:P31 wd:Q5;
     wdt:P570 ?dod.
@@ -46,7 +46,7 @@ def check_yes(value: str) -> bool:
     return any(yes in value for yes in ["yes", "da"])
 
 
-def get_blp(text: str) -> str | None:
+def get_blp(text: str):
     """
     Extract the BPV values from the given text.
     If no BPV is found, False is returned.
@@ -65,6 +65,23 @@ def get_blp(text: str) -> str | None:
                 if name in {"bpv", "living", "în viață"} and check_yes(params[param]):
                         return "\\|" + param + "=" + params[param]
     return None
+
+def add_blp(talk_page: pywikibot.Page) -> None:
+    """
+    Add the BPV template to the talk page if it does not exist.
+    """
+    text = ""
+    if talk_page.exists():
+        text = talk_page.get() or ""
+    blp = get_blp(text)
+    if blp:
+        print(f"BPV already exists: {blp}")
+        return
+    else:
+        print("No BPV found, adding.")
+        new_text = "{{bpv}}\n" + text
+        pywikibot.showDiff(text, new_text, context=1)
+        talk_page.put(new_text, summary="Adăugat formatul BPV pentru un articol recent creat despre o persoană în viață.")
 
 
 class BLPBot(SingleSiteBot):
@@ -91,8 +108,6 @@ class BLPBot(SingleSiteBot):
             print("No BPV found.")
 
 if __name__ == "__main__":
-    # Example usage of the recent_deaths_generator
     bot = BLPBot(generator=recent_deaths_generator())
-
     bot.run()
 
