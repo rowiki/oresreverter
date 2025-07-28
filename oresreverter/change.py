@@ -120,6 +120,7 @@ class Change(object):
 			if 'P569' in item.claims and 'P570' not in item.claims:
 				#pywikibot.output(item.claims)
 				add_blp(self._article.toggleTalkPage())
+				self._cfg.reporter.report_successful_blp_add()
 
 	def treat(self) -> None:
 		# First, run the maintenance scripts

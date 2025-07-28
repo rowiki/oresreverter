@@ -132,5 +132,6 @@ dmypy.json
 *cache-py3/
 throttle.ctrl
 user-config.py
+user-password.py
 .passwd
 pywikibot.lwp

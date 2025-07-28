@@ -34,6 +34,8 @@ class BotReporter(object):
 		self.patrol_fail = 0
 		self.near_revert = 0
 		self.all_changes = 0
+		self.bpv_added = 0
+		self.bpv_removed = 0
 
 	def report_successful_revert(self):
 		self.revert_success += 1
@@ -65,6 +67,18 @@ class BotReporter(object):
 
 		self.maybe_publish_report()
 
+	def report_successful_blp_add(self):
+		self.bpv_added += 1
+		#self.all_changes += 1
+
+		self.maybe_publish_report()
+
+	def report_successful_blp_removal(self):
+		self.bpv_removed += 1
+		#self.all_changes += 1
+
+		self.maybe_publish_report()
+
 	def report_no_revert(self):
 		self.all_changes += 1
 		# This is by far the most common case, so no report publishing here; wait for an error instead
@@ -78,6 +92,7 @@ class BotReporter(object):
 		txt += f"*''Editări patrulate'': {self.patrol_success} ({{{{dim|{self.patrol_success * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Patrulări eșuate'': {self.patrol_fail} ({{{{dim|{self.patrol_fail * 100 / self.all_changes}|%}}}})\n"
 		txt += f"*''Schimbări verificate'': {self.all_changes} ({{{{dim|100|%}}}})\n"
+		txt += f"*''Formate BPV adăugate'': {self.bpv_added}\n"
 		txt += "~~~~\n"
 		
 		return txt
