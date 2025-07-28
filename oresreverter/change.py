@@ -35,6 +35,7 @@ class Change(object):
 		self._revid = info['revid']
 		self._title = info['title']
 		self._type = info['type']
+		self._patrolled = info.get('patrolled')
 		self._article = pywikibot.Page(self._site, self._title)
 		self._user = RevertedUser(info['user'], cfg.article_follow_interval)
 		self._score = None
@@ -103,8 +104,9 @@ class Change(object):
 	def work_on_blps(self) -> None:
 		if self._type != 'new':
 			return
-		#pywikibot.output(f"Adding {self._type} blp to " + self._title)
+		pywikibot.output(f"Working on blp in " + self._title)
 		pywikibot.sleep(5 * 60) # wait 5 minutes before adding BLP
+		pywikibot.output(f"Working on blp {self._title} after sleep")
 		if not self._article.exists():
 			return
 		try:
@@ -123,6 +125,9 @@ class Change(object):
 		# First, run the maintenance scripts
 		thread = Thread(target=self.work_on_blps)
 		thread.start()
+		if self._patrolled is not None:
+			#pywikibot.output(f"Skipping patrolled change: {self._title} @ {self._revid}")
+			return
 		#pywikibot.output(self._title, self.revid, self.score, flush=True)
 		# failed to get score from the model
 		if self.score == 0:

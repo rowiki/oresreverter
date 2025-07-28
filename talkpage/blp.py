@@ -55,7 +55,7 @@ def get_blp(text: str):
 
     for template in templates:
         if template[0].lower() in "bpv":
-            return "{{" + template[0] + "}}\n"
+            return "{{" + template[0] + "}}"
         elif template[0].lower().startswith("proiect"):
             params = template[1]
             print("template:", template)

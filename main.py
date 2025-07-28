@@ -53,7 +53,7 @@ def single_run():
 									namespaces=cfg.namespaces,
 									total=cfg.rc_limit,
 									top_only=True,
-									patrolled=False,
+									patrolled=None,
 									reverse=False)
 
 			count = 0

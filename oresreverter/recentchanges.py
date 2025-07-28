@@ -63,7 +63,7 @@ def recentchanges(site, *,
 
         rcgen = site._generator(api.ListGenerator, type_arg='recentchanges',
                                 rcprop='user|timestamp|title|ids'
-                                       '|flags|tags|oresscores',
+                                       '|flags|tags|oresscores|patrolled',
                                 namespaces=namespaces,
                                 total=total, rctoponly=top_only)
         if start is not None:
