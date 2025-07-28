@@ -66,7 +66,7 @@ class Change(object):
 		return self._article
 
 	def revert(self):
-		if not self._cfg.active:
+		if not self._cfg.enabled_tools['revert']:
 			pywikibot.output(f"Found revert candidate: [[{self._title}]]@{self._revid} ({self._model.get_name()} score={self.score})")
 			#pywikibot.output(f"|-\n| [[Special:Diff/{self._revid}|{self._title}]] || || ")
 			return
@@ -89,7 +89,7 @@ class Change(object):
 			pass #TODO maybe warn here?
 
 	def patrol(self) -> None:
-		if not self._cfg.active:
+		if not self._cfg.enabled_tools['patrol']:
 			pywikibot.output(f"Found patrol candidate: [[{self._title}]]@{self._revid} ({self._model.get_name()} score={self.score})")
 			return
 		try:
@@ -103,6 +103,9 @@ class Change(object):
 
 	def work_on_blps(self) -> None:
 		if self._type != 'new':
+			return
+		if not self._cfg.enabled_tools['blp_add']:
+			pywikibot.output(f"Found BLP candidate: [[{self._title}]]@{self._revid}")
 			return
 		pywikibot.output(f"Working on blp in " + self._title)
 		pywikibot.sleep(5 * 60) # wait 5 minutes before adding BLP
@@ -123,6 +126,9 @@ class Change(object):
 				self._cfg.reporter.report_successful_blp_add()
 
 	def treat(self) -> None:
+		if not self._cfg.active:
+			pywikibot.output(f"Dry run mode: skipping {self._title} @ {self._revid}")
+			return
 		# First, run the maintenance scripts
 		thread = Thread(target=self.work_on_blps)
 		thread.start()
