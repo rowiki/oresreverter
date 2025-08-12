@@ -24,7 +24,7 @@ class RevertedUser:
 		#TODO: dehardcode namespace
 		self.userpage = f"Discuție_Utilizator:{self.username}"
 		self.report_interval_seconds = report_interval_seconds
-		self.report_timestamp = time.time()
+		self.report_timestamp = time.time() - report_interval_seconds # make sure we don't skip a report for fast movers
 
 	def get_last_warning_level(self) -> int:
 		count = 0
@@ -75,7 +75,7 @@ class RevertedUser:
 		now = time.time()
 		if self.report_timestamp and now - self.report_timestamp < self.report_interval_seconds:
 			pywikibot.info("A report was already made recently. Skipping.")
-			self.report_timestamp = now
+			#self.report_timestamp = now
 			return
 		else:
 			self.report_timestamp = now
