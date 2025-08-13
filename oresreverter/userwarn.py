@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: utf-8  -*-
 
-import time
 import requests
 
 import pywikibot
+from changetrack import ChangeTracker
 from pywikibot.tools import is_ip_address
 
 
@@ -19,12 +19,11 @@ class RevertedUser:
 	warn_description = "Avertizare de nivel {level} pentru vandalism la [[{article}]]"
 	report_timestamp = None
 
-	def __init__(self, username: str, report_interval_seconds : int = 3600):
+	def __init__(self, username: str, tracker: ChangeTracker):
 		self.username = username
 		#TODO: dehardcode namespace
 		self.userpage = f"Discuție_Utilizator:{self.username}"
-		self.report_interval_seconds = report_interval_seconds
-		self.report_timestamp = time.time() - report_interval_seconds # make sure we don't skip a report for fast movers
+		self.tracker = tracker
 
 	def get_last_warning_level(self) -> int:
 		count = 0
@@ -72,13 +71,9 @@ class RevertedUser:
 		up.put(text, summary=description)
 
 	def report(self):
-		now = time.time()
-		if self.report_timestamp and now - self.report_timestamp < self.report_interval_seconds:
+		if not self.tracker.should_report_user(self.username):
 			pywikibot.info("A report was already made recently. Skipping.")
-			#self.report_timestamp = now
 			return
-		else:
-			self.report_timestamp = now
 
 		warn_message = self.block_message.format(user=self.username)
 		description = self.block_description.format(user=self.username)
