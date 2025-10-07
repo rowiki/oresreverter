@@ -16,14 +16,15 @@ class ChangeTracker:
 
 	def should_report_user(self, user) -> bool:
 		"""Check if the user should be reported based on the time since last report."""
+		now = datetime.now(self.tz)
 		if user not in self.user_report:
 			ret = True
-		now = datetime.now(self.tz)
-		tdelta = now - self.user_report[user]
-		if tdelta.total_seconds() > self.timeout:
-			ret = True
 		else:
-			ret = False
+			tdelta = now - self.user_report[user]
+			if tdelta.total_seconds() > self.timeout:
+				ret = True
+			else:
+				ret = False
 		if ret:
 			self.user_report[user] = now
 		return ret

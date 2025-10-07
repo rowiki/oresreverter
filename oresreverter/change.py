@@ -37,7 +37,7 @@ class Change(object):
 		self._type = info['type']
 		self._patrolled = info.get('patrolled')
 		self._article = pywikibot.Page(self._site, self._title)
-		self._user = RevertedUser(info['user'], cfg.article_follow_interval)
+		self._user = RevertedUser(info['user'], cfg.tracker)
 		self._score = None
 		self._cfg = cfg
 		self._model = cfg.model
@@ -81,6 +81,8 @@ class Change(object):
 			self._user.warn_or_report(self._title)
 		except Exception as e:
 			pywikibot.output(f"Error rollbacking page {self._title}: {e}")
+			import traceback
+			print(traceback.format_exc())
 			self._cfg.reporter.report_failed_revert()
 		else:
 			self._cfg.reporter.report_successful_revert()
@@ -118,7 +120,7 @@ class Change(object):
 			return
 		# humans
 		if (item is not None and item.get() and
-                item_is_in_list(item.claims.get('P31'), ['Q5'])):
+			    item_is_in_list(item.claims.get('P31'), ['Q5'])):
 			pywikibot.output(self._title + " is human...")
 			if 'P569' in item.claims and 'P570' not in item.claims:
 				#pywikibot.output(item.claims)

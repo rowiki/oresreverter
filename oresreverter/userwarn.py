@@ -4,7 +4,7 @@
 import requests
 
 import pywikibot
-from changetrack import ChangeTracker
+from .changetrack import ChangeTracker
 from pywikibot.tools import is_ip_address
 
 
@@ -71,6 +71,7 @@ class RevertedUser:
 		up.put(text, summary=description)
 
 	def report(self):
+		print(self.tracker)
 		if not self.tracker.should_report_user(self.username):
 			pywikibot.info("A report was already made recently. Skipping.")
 			return
