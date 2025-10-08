@@ -7,7 +7,24 @@ import pywikibot
 from oresreverter.change import Change
 from oresreverter.config import BotConfig
 from oresreverter.recentchanges import recentchanges
+from cronjobs.blp import BLPBot, blp_remove_generator
+from cronjobs.protection import ProtectionBot, page_protected_generator, page_unprotected_generator
 import time
+
+def initialize_cronjobs(cfg: BotConfig, dry_run: bool):
+	cronjobs={}
+	last_run = {}
+	for cronjob in cfg.cronjobs_interval_minutes:
+		last_run[cronjob] = 0
+		generator_func = globals().get(f"{cronjob}_generator")
+		generator_class = None
+		if 'blp' in cronjob:
+			generator_class = BLPBot
+		else:
+			generator_class = ProtectionBot
+		cronjobs[cronjob] = generator_class(dry_run=dry_run, generator=generator_func())
+
+	return cronjobs, last_run
 
 def notify_maintainer(user, exception):
 	error = f"\n==Eroare in PatrocleBot==\n{str(exception)}--~~~~\n"
@@ -44,10 +61,22 @@ def single_run():
 	min_backoff_factor = 1
 	max_backoff_factor = int((cfg.rc_interval_max + cfg.rc_interval_min - 1) / cfg.rc_interval_min)
 
+	cronjobs, last_run = initialize_cronjobs(cfg, dry_run)
+
 	pywikibot.output(f"Started bot with config {page}, model {cfg.model_name}")
 
 	while True:
 		try:
+			# start with cronjobs if any
+			for cron in cronjobs:
+				if cron in cfg.cronjobs_interval_minutes:
+					interval = cfg.cronjobs_interval_minutes[cron]
+					if (time.time() - last_run[cron]) < interval * 60:
+						continue
+					pywikibot.output(f"Running cronjob {cron}")
+					cronjobs[cron].run()
+					last_run[cron] = time.time()
+			# then continue with recent changes
 			changes = recentchanges(site,
 									end=processed_timestamp,
 									namespaces=cfg.namespaces,
