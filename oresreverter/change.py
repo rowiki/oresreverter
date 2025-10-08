@@ -6,7 +6,7 @@ from contextlib import suppress
 from threading import Thread
 
 import requests
-from talkpage.blp import add_blp
+from cronjobs.blp import add_blp
 
 import pywikibot
 from pywikibot.exceptions import NoPageError

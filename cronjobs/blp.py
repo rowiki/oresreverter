@@ -10,7 +10,7 @@ from pywikibot.bot import SingleSiteBot
 from pywikibot.data import sparql
 
 
-def recent_deaths_generator():
+def blp_remove_generator():
     """
     Generator function to yield recent deaths.
     """
@@ -85,9 +85,10 @@ def add_blp(talk_page: pywikibot.Page) -> None:
 
 
 class BLPBot(SingleSiteBot):
-    def __init__(self, site=pywikibot.Site("wikidata", "wikidata"), generator=None):
+    def __init__(self, dry_run=None, site=pywikibot.Site("wikidata", "wikidata"), generator=None):
         super(SingleSiteBot, self).__init__(
             generator=generator, site=site)
+        self._dry_run = dry_run
         self._site = site
 
     def treat(self, item: Any) -> None:
@@ -103,11 +104,12 @@ class BLPBot(SingleSiteBot):
             print(f"BPV found: {blp}")
             new_text = re.sub(blp, "", text)
             pywikibot.showDiff(text, new_text, context=1)
-            tp.put(new_text, summary="Scot formatul BPV pentru o persoană recent decedată.")
+            if not self._dry_run:
+                tp.put(new_text, summary="Scot formatul BPV pentru o persoană recent decedată.")
         else:
             print("No BPV found.")
 
 if __name__ == "__main__":
-    bot = BLPBot(generator=recent_deaths_generator())
+    bot = BLPBot(generator=blp_remove_generator())
     bot.run()
 
