@@ -23,6 +23,14 @@ def page_protected_generator():
     """
     yield from set(pagegenerators.LogeventsPageGenerator(logtype="protect", reverse=True, total=5000))
 
+
+def replace_noinclude(search, replace, text: str) -> str:
+    text, changes = re.subn(f'<noinclude>({search})</noinclude>', replace, text)
+    if not changes:
+        text, changes = re.subn(f'({search})', replace, text)
+    return text
+
+
 class ProtectionBot(SingleSiteBot):
     """
     A bot to check and update page protections
@@ -51,12 +59,15 @@ class ProtectionBot(SingleSiteBot):
                 page.title().endswith('.css')):
             return
 
+        oldtext = text = page.get()
         protection = page.protection()
+        if len(protection) == 0:
+            # no protection at all
+            text = replace_noinclude(self.template_regex, '', text)
         for key in sorted(protection.keys()):
             # we only handle edit protections
             if key != 'edit':
                 continue
-            oldtext = text = page.get()
             if protection[key][0] != self.protection_levels[0]:
                 # some protection exists
                 expiry = datetime.datetime.now() + datetime.timedelta(days=30)
@@ -77,7 +88,7 @@ class ProtectionBot(SingleSiteBot):
                         if entries.group(2) is not None:
                             replacement = self.simple_template[:-2] + entries.group(2) + '}}'
                         #replace the first occurrence
-                        text, changes = re.subn(
+                        text = replace_noinclude(
                             f'({self.template_regex})', replacement, text)
                 else:
                     #add the template
@@ -90,16 +101,16 @@ class ProtectionBot(SingleSiteBot):
                     text = replacement + text
             else:
                 # no protection, remove any existing template
-                text, changes = re.subn(self.template_regex, '', text)
+                text = replace_noinclude(self.template_regex, '', text)
 
-            if oldtext == text:
-                return
-            #pywikibot.output(protection[key][0])
-            pywikibot.showDiff(oldtext, text)
-            if not self._dry_run:
-                page.put(text, summary="Actualizat formatul de protejare conform nivelului de protecție")
+        if oldtext == text:
+            return
+        #pywikibot.output(protection[key][0])
+        pywikibot.showDiff(oldtext, text)
+        if not self._dry_run:
+            page.put(text, summary="Actualizat formatul de protejare conform nivelului de protecție")
 
 
 if __name__ == "__main__":
-    bot = ProtectionBot(generator=page_protected_generator())
+    bot = ProtectionBot(generator=page_unprotected_generator())
     bot.run()
