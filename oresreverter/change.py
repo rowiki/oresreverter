@@ -109,9 +109,9 @@ class Change(object):
 		if not self._cfg.enabled_tools['blp_add']:
 			pywikibot.output(f"Found BLP candidate: [[{self._title}]]@{self._revid}")
 			return
-		pywikibot.output(f"Working on blp in " + self._title)
+		#pywikibot.output(f"Working on blp in " + self._title)
 		pywikibot.sleep(5 * 60) # wait 5 minutes before adding BLP
-		pywikibot.output(f"Working on blp {self._title} after sleep")
+		#pywikibot.output(f"Working on blp {self._title} after sleep")
 		if not self._article.exists():
 			return
 		try:

@@ -13,18 +13,14 @@ import time
 
 def initialize_cronjobs(cfg: BotConfig, dry_run: bool):
 	cronjobs={}
-	last_run = {}
 	for cronjob in cfg.cronjobs_interval_minutes:
-		last_run[cronjob] = 0
 		generator_func = globals().get(f"{cronjob}_generator")
-		generator_class = None
-		if 'blp' in cronjob:
-			generator_class = BLPBot
-		else:
-			generator_class = ProtectionBot
-		cronjobs[cronjob] = generator_class(dry_run=dry_run, generator=generator_func())
+		if 'blp' in cronjob and cfg.enabled_tools['blp_remove']:
+			cronjobs[cronjob] = BLPBot(dry_run=dry_run, generator=generator_func())
+		elif 'protected' in cronjob and cfg.enabled_tools['page_protection']:
+			cronjobs[cronjob] = ProtectionBot(dry_run=dry_run, generator=generator_func())
 
-	return cronjobs, last_run
+	return cronjobs
 
 def notify_maintainer(user, exception):
 	error = f"\n==Eroare in PatrocleBot==\n{str(exception)}--~~~~\n"
@@ -61,7 +57,7 @@ def single_run():
 	min_backoff_factor = 1
 	max_backoff_factor = int((cfg.rc_interval_max + cfg.rc_interval_min - 1) / cfg.rc_interval_min)
 
-	cronjobs, last_run = initialize_cronjobs(cfg, dry_run)
+	cronjobs = initialize_cronjobs(cfg, dry_run)
 
 	pywikibot.output(f"Started bot with config {page}, model {cfg.model_name}")
 
@@ -71,11 +67,11 @@ def single_run():
 			for cron in cronjobs:
 				if cron in cfg.cronjobs_interval_minutes:
 					interval = cfg.cronjobs_interval_minutes[cron]
-					if (time.time() - last_run[cron]) < interval * 60:
+					if (time.time() - cronjobs[cron].last_run) < interval * 60:
 						continue
 					pywikibot.output(f"Running cronjob {cron}")
 					cronjobs[cron].run()
-					last_run[cron] = time.time()
+					cronjobs[cron].last_run = time.time()
 			# then continue with recent changes
 			changes = recentchanges(site,
 									end=processed_timestamp,

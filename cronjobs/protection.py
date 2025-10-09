@@ -21,7 +21,7 @@ def page_protected_generator():
     """
     Generator function to yield pages needing protection.
     """
-    yield from set(pagegenerators.LogeventsPageGenerator(logtype="protect", reverse=True, total=500))
+    yield from set(pagegenerators.LogeventsPageGenerator(logtype="protect", reverse=True, total=5000))
 
 class ProtectionBot(SingleSiteBot):
     """
@@ -32,6 +32,7 @@ class ProtectionBot(SingleSiteBot):
         super().__init__(**kwargs)
         #self.site = pywikibot.Site()
         self._dry_run = dry_run
+        self.last_run = 0
         self.protection_levels = [ '', 'autoconfirmed', 'extendedconfirmed', 'templateeditor', 'sysop' ]
         self.template_regex = r'\{\{(?:[Tt]emplate:|[Ff]ormat:|)([Pp]p[^\|]*|[Pp]rotejat)([^\}]*)\}\}'
         self.regexes = [r'',
@@ -55,9 +56,9 @@ class ProtectionBot(SingleSiteBot):
             # we only handle edit protections
             if key != 'edit':
                 continue
+            oldtext = text = page.get()
             if protection[key][0] != self.protection_levels[0]:
                 # some protection exists
-                oldtext = text = page.get()
                 expiry = datetime.datetime.now() + datetime.timedelta(days=30)
                 if protection[key][1] != 'infinity':
                     expiry = datetime.datetime.strptime(protection[key][1], '%Y-%m-%dT%H:%M:%SZ')
@@ -79,19 +80,24 @@ class ProtectionBot(SingleSiteBot):
                         text, changes = re.subn(
                             f'({self.template_regex})', replacement, text)
                 else:
-                    #pywikibot.output("No template found, adding one to [[%s]].", page.title())
-                    #pywikibot.output(protection[key][0])
-                    #pywikibot.output(text[:100])
                     #add the template
                     if page.namespace() == 10:
                         #for template namespace, add noinclude
                         replacement = '<noinclude>' + replacement + '</noinclude>'
+                    if text.startswith("=") or text.startswith("#"):
+                        #for redirect or interwiki, add after the first line
+                        replacement += "\n"
                     text = replacement + text
+            else:
+                # no protection, remove any existing template
+                text, changes = re.subn(self.template_regex, '', text)
 
-                #pywikibot.output(protection[key][0])
-                pywikibot.showDiff(oldtext, text)
-                if not self._dry_run:
-                    page.put(text, summary="Actualizat formatul de protejare conform nivelului de protecție")
+            if oldtext == text:
+                return
+            #pywikibot.output(protection[key][0])
+            pywikibot.showDiff(oldtext, text)
+            if not self._dry_run:
+                page.put(text, summary="Actualizat formatul de protejare conform nivelului de protecție")
 
 
 if __name__ == "__main__":

@@ -90,6 +90,7 @@ class BLPBot(SingleSiteBot):
             generator=generator, site=site)
         self._dry_run = dry_run
         self._site = site
+        self.last_run = 0
 
     def treat(self, item: Any) -> None:
         sitelink = item.getSitelink('rowiki', True)
