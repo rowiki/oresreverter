@@ -5,12 +5,14 @@ import time
 from contextlib import suppress
 from threading import Thread
 
+import mwparserfromhell
 import requests
 from cronjobs.blp import add_blp
 
 import pywikibot
 from pywikibot.exceptions import NoPageError
 from .config import BotConfig
+from .models.langid import LangIdConfig
 from .userwarn import RevertedUser
 
 
@@ -119,6 +121,11 @@ class Change(object):
 		if not self._cfg.enabled_tools['blp_add']:
 			pywikibot.output(f"Found BLP candidate: [[{self._title}]]@{self._revid}")
 			return
+
+		thread = Thread(target=self.check_blps)
+		thread.start()
+
+	def check_blps(self) -> None:
 		#pywikibot.output(f"Working on blp in " + self._title)
 		pywikibot.sleep(5 * 60) # wait 5 minutes before adding BLP
 		#pywikibot.output(f"Working on blp {self._title} after sleep")
@@ -126,7 +133,7 @@ class Change(object):
 			return
 		try:
 			item = self._article.data_item()
-		except NoPageError as e:
+		except NoPageError:
 			return
 		# humans
 		if (item is not None and item.get() and
@@ -137,19 +144,39 @@ class Change(object):
 				add_blp(self._article.toggleTalkPage())
 				self._cfg.reporter.report_successful_blp_add()
 
+	def work_on_new_articles(self) -> None:
+		if self._type != 'new':
+			return
+		if not self._cfg.enabled_tools['new_article_watch']:
+			pywikibot.output(f"Found new article candidate: [[{self._title}]]@{self._revid}")
+			return
+		self.check_language()
+
+	def check_language(self) -> None:
+		langid = LangIdConfig()
+		text = self._article.text
+		wikicode = mwparserfromhell.parse(text)
+		score, prediction = langid.get_result(wikicode.strip_code())
+		if prediction != self._site.lang:
+			print(f"New article {self._title} is in language {prediction} (score {score})")
+			if score >= langid.threshold:
+				self.tag_for_speedy_deletion("{{șr|Articol în altă limbă "
+										 "decât româna}}", "limbă greșită")
+
 	def treat(self) -> None:
 		if not self._cfg.active:
 			pywikibot.output(f"Dry run mode: skipping {self._title} @ {self._revid}")
 			return
 		# First, run the maintenance scripts
-		thread = Thread(target=self.work_on_blps)
-		thread.start()
+		self.work_on_blps()
+
 		if self._patrolled is not None:
 			#pywikibot.output(f"Skipping patrolled change: {self._title} @ {self._revid}")
 			return
 		#pywikibot.output(self._title, self.revid, self.score, flush=True)
 		# failed to get score from the model
 		if self.score == 0:
+			self.work_on_new_articles() # one of the reason for score 0 could be new article
 			return
 		if self.score >= self._cfg.threshold:
 			self._cfg.load_config()

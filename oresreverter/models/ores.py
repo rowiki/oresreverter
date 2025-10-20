@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: utf-8  -*-
-from .base import ModelConfig
+from .base import RevertModelConfig
 from typing import Tuple
 import requests
 
-class OresBaseConfig(ModelConfig):
+class OresBaseConfig(RevertModelConfig):
 	"""Configuration for the ORES model."""
 	def __init__(self):
 		self.url = "https://ores.wikimedia.org/v3/scores/{dbname}/{revid}/{type}"

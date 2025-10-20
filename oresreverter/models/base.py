@@ -12,15 +12,6 @@ class ModelConfig(object):
 	cfg: dict
 	docs:  str # a link to the documentation of the model
 
-	def likely_bad(self, score:float) -> bool:
-		raise NotImplementedError
-
-	def possibly_bad(self, score:float) -> bool:
-		raise NotImplementedError
-
-	def likely_constructive(self, score:float) -> bool:
-		raise NotImplementedError
-
 	@staticmethod
 	def get_name() -> str:
 		return None
@@ -33,4 +24,15 @@ class ModelConfig(object):
 
 	def set_config(self, config: dict):
 		self.cfg = config
+
+class RevertModelConfig(ModelConfig):
+
+	def likely_bad(self, score:float) -> bool:
+		raise NotImplementedError
+
+	def possibly_bad(self, score:float) -> bool:
+		raise NotImplementedError
+
+	def likely_constructive(self, score:float) -> bool:
+		raise NotImplementedError
 

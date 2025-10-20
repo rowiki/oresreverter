@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8  -*-
 
-from .base import ModelConfig
+from .base import ModelConfig, RevertModelConfig
 from .ores import OresConfig, OresDamagingConfig, OresGoodfaithConfig
 from .revertrisk import MultilingualConfig, AgnosticConfig
 import json

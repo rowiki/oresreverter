@@ -3,14 +3,14 @@
 
 from typing import Tuple
 import pywikibot
-from .base import ModelConfig
+from .base import RevertModelConfig
 from  . import all_subclasses
 
 
-class AllModelsConfig(ModelConfig):
+class AllModelsConfig(RevertModelConfig):
 	def __init__(self) -> None:
 		# at this point in the function, `self` does not have a name and is removed from the list
-		self.models = [x for x in all_subclasses(ModelConfig) if x.get_name() != None and x != self.__class__]
+		self.models = [x for x in all_subclasses(RevertModelConfig) if x.get_name() != None and x != self.__class__]
 		self.threshold = 0.909 # TODO
 		self.docs = "Utilizator:PatrocleBot"
 		self.latest_model = self.__class__ # what model score we choose to return

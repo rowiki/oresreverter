@@ -4,10 +4,10 @@
 import json
 import pywikibot
 import requests
-from .base import ModelConfig
+from .base import RevertModelConfig
 
 
-class RevertriskBaseConfig(ModelConfig):
+class RevertriskBaseConfig(RevertModelConfig):
 	def __init__(self):
 		self.url = "https://api.wikimedia.org/service/lw/inference/v1/models/{model}:predict"
 		self.type = None
