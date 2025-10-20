@@ -65,6 +65,14 @@ class Change(object):
 	def article(self):
 		return self._article
 
+	def tag_for_speedy_deletion(self, tag: str, reason: str) -> None:
+		if len(self.article.contributors()) == 1:
+			text = f"{tag}\n{self.article.text}"
+			expl = (f"Cerere de ștergere rapidă a unei pagini pentru "
+					f"{reason}. Greșit? Raportați [P:AA|aici]].")
+			self.article.put(text, summary=expl)
+			pywikibot.output(f"Speedy deletion tag added to {self._title}.")
+
 	def revert(self):
 		if not self._cfg.enabled_tools['revert']:
 			pywikibot.output(f"Found revert candidate: [[{self._title}]]@{self._revid} ({self._model.get_name()} score={self.score})")
@@ -84,6 +92,8 @@ class Change(object):
 			import traceback
 			print(traceback.format_exc())
 			self._cfg.reporter.report_failed_revert()
+			self.tag_for_speedy_deletion("{{șr-g3-vandalism}}",
+										 f"vandalism (scor [[{self._model.get_docs()}|{self._model.get_name()}]]: {self.score})")
 		else:
 			self._cfg.reporter.report_successful_revert()
 			pywikibot.output(f"The edit(s) made in {self._title} by {user} was rollbacked.")
