@@ -21,7 +21,9 @@ def page_protected_generator():
     """
     Generator function to yield pages needing protection.
     """
-    yield from set(pagegenerators.LogeventsPageGenerator(logtype="protect", reverse=True, total=5000))
+    yield from set(pagegenerators.LogeventsPageGenerator(logtype="protect",
+                                                         reverse=False,
+                                                         total=50))
 
 
 def replace_noinclude(search, replace, text: str) -> str:
