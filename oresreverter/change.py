@@ -4,6 +4,7 @@
 import time
 from contextlib import suppress
 from threading import Thread
+from langdetect import detect_langs
 
 import mwparserfromhell
 import requests
@@ -156,7 +157,14 @@ class Change(object):
 		langid = LangIdConfig()
 		text = self._article.text
 		wikicode = mwparserfromhell.parse(text)
-		score, prediction = langid.get_result(wikicode.strip_code())
+		# langdetect model, decent
+		detections = detect_langs(wikicode.strip_code())
+		if len(detections) > 0:
+			score, prediction = detections[0].prob, detections[0].lang
+		else:
+			# Wikimedia model, pretty rubbish
+			score, prediction = langid.get_result(wikicode.strip_code())
+
 		if prediction != self._site.lang:
 			print(f"New article {self._title} is in language {prediction} (score {score})")
 			if score >= langid.threshold:
