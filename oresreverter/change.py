@@ -68,12 +68,12 @@ class Change(object):
 	def article(self):
 		return self._article
 
-	def tag_for_speedy_deletion(self, tag: str, reason: str) -> None:
+	def tag_article(self, tag: str, reason: str) -> None:
 		if len(self.article.contributors()) == 1:
 			text = f"{tag}\n{self.article.text}"
-			expl = (f"Cerere de ștergere rapidă a unei pagini pentru "
-					f"{reason}. Greșit? Raportați [P:AA|aici]].")
-			self.article.put(text, summary=expl)
+			expl = (f"Etichetez articolul pentru "
+					f"{reason}. Greșit? Raportați [[P:AA|aici]].")
+			self.article.put(text, summary=expl, bot=False)
 			pywikibot.output(f"Speedy deletion tag added to {self._title}.")
 
 	def revert(self):
@@ -95,7 +95,7 @@ class Change(object):
 			import traceback
 			print(traceback.format_exc())
 			self._cfg.reporter.report_failed_revert()
-			self.tag_for_speedy_deletion("{{șr-g3-vandalism}}",
+			self.tag_article("{{șr-g3-vandalism}}",
 										 f"vandalism (scor [[{self._model.get_docs()}|{self._model.get_name()}]]: {self.score})")
 		else:
 			self._cfg.reporter.report_successful_revert()
@@ -168,8 +168,7 @@ class Change(object):
 		if prediction != self._site.lang:
 			print(f"New article {self._title} is in language {prediction} (score {score})")
 			if score >= langid.threshold:
-				self.tag_for_speedy_deletion("{{șr|Articol în altă limbă "
-										 "decât româna}}", "limbă greșită")
+				self.tag_article("{{de tradus}}", "limbă greșită")
 
 	def treat(self) -> None:
 		if not self._cfg.active:

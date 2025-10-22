@@ -87,7 +87,7 @@ class RevertedUser:
 		text = text.replace(end_of_header, end_of_header + "\n\n" + warn_message)
 		pywikibot.info(warn_message)
 		pywikibot.info(description)
-		p.put(text, summary=description, botflag=False)
+		p.put(text, summary=description, bot=False)
 
 	def warn_or_report(self, article: str):
 		level = 1 + self.get_last_warning_level()
