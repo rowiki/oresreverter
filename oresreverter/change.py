@@ -154,6 +154,9 @@ class Change(object):
 		self.check_language()
 
 	def check_language(self) -> None:
+		# redirects are too short to analyze
+		if self._article.isRedirectPage():
+			return
 		langid = LangIdConfig()
 		text = self._article.text
 		wikicode = mwparserfromhell.parse(text)
