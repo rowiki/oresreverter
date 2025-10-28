@@ -7,6 +7,7 @@ python3 -m pip install -r /data/project/.shared/pywikibot/core_stable/requiremen
 
 cd /data/project/patrocle/oresreverter
 export PYTHONPATH=/data/project/.shared/pywikibot/core_stable:$PYTHOPATH
+python3 -m pip install --use-pep517 -r requirements.txt
 ls -l /data/project/.shared/pywikibot/core_stable
 
 python3 main.py -model:revertrisk.multilingual
