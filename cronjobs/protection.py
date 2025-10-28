@@ -63,6 +63,8 @@ class ProtectionBot(SingleSiteBot):
 
         oldtext = text = page.get()
         protection = page.protection()
+        pywikibot.output("" + page.title())
+        pywikibot.output(protection)
         if len(protection) == 0:
             # no protection at all
             text = replace_noinclude(self.template_regex, '', text)
@@ -76,11 +78,15 @@ class ProtectionBot(SingleSiteBot):
                 if protection[key][1] != 'infinity':
                     expiry = datetime.datetime.strptime(protection[key][1], '%Y-%m-%dT%H:%M:%SZ')
 
+                #expired protection, remove
+                if expiry < datetime.datetime.now():
+                    text = replace_noinclude(self.template_regex, '', text)
+                    continue
+
                 replacement = self.simple_template
                 if expiry > datetime.datetime.now() + datetime.timedelta(days=7):
                     replacement = self.small_template
 
-                pywikibot.output("" + page.title())
                 entries = re.search(self.template_regex, text)
                 if entries is not None:
                     #check if we need to update the template
