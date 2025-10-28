@@ -70,6 +70,7 @@ def single_run():
 					if (time.time() - cronjobs[cron].last_run) < interval * 60:
 						continue
 					pywikibot.output(f"Running cronjob {cron}")
+					cfg.load_config()
 					cronjobs[cron].run()
 					cronjobs[cron].last_run = time.time()
 			# then continue with recent changes
