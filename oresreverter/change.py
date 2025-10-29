@@ -72,7 +72,7 @@ class Change(object):
 		if len(self.article.contributors()) == 1:
 			text = f"{tag}\n{self.article.text}"
 			expl = (f"Etichetez articolul pentru "
-					f"{reason}. Greșit? Raportați [[P:AA|aici]].")
+					f"{reason}. Greșit? Raportați [[WP:AA|aici]].")
 			self.article.put(text, summary=expl, bot=False)
 			pywikibot.output(f"Speedy deletion tag added to {self._title}.")
 
