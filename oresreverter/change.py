@@ -4,11 +4,11 @@
 import time
 from contextlib import suppress
 from threading import Thread
-from langdetect import detect_langs
 
 import mwparserfromhell
 import requests
 from cronjobs.blp import add_blp
+from langdetect import detect_langs
 
 import pywikibot
 from pywikibot.exceptions import NoPageError
@@ -44,6 +44,10 @@ class Change(object):
 		self._score = None
 		self._cfg = cfg
 		self._model = cfg.model
+		self.score_penalty = 0
+		labels_with_penalty = list(set(info['tags']) & set(cfg.labels_penalty.keys()))
+		if len(labels_with_penalty) > 0:
+			self.score_penalty = max([cfg.labels_penalty[label] for label in labels_with_penalty])
 
 	def get_score(self):
 		if not isinstance(self._revid, int):
@@ -84,7 +88,10 @@ class Change(object):
 
 		user = self._user.username
 		docs_link = f"[[{self._model.get_docs()}|{self._model.get_name()}]]"
-		expl = f"Se revine automat asupra unei modificări distructive (scor {docs_link}: {self.score}). Greșit? Raportați [[WP:AA|aici]]."
+		extra = ""
+		if self.score_penalty > 0:
+			extra = f"+{self.score_penalty} penalizare"
+		expl = f"Se revine automat asupra unei modificări distructive (scor {docs_link}: {self.score}{extra}). Greșit? Raportați [[WP:AA|aici]]."
 		try:
 			self._cfg.tracker.add_change(self._title, user)
 			self._site.loadrevisions(self.article, content=False, total=10)
@@ -191,7 +198,7 @@ class Change(object):
 		if self.score == 0:
 			self.work_on_new_articles() # one of the reason for score 0 could be new article
 			return
-		if self.score >= self._cfg.threshold:
+		if self.score + self.score_penalty >= self._cfg.threshold:
 			self._cfg.load_config()
 			self._site.login()
 			self.revert()
