@@ -179,9 +179,9 @@ class Change(object):
 			score, prediction = langid.get_result(wikicode.strip_code())
 
 		if prediction != self._site.lang:
-			print(f"New article {self._title} is in language {prediction} (score {score})")
+			pywikibot.output(f"New article {self._title} is in language {prediction} (score {score})")
 			if score >= langid.threshold:
-				self.tag_article("{{de tradus}}", "limbă greșită")
+				self.tag_article(f"{{{{de tradus|{{{{nume limbă|{prediction}}}}}}}}}", "limbă greșită")
 
 	def treat(self) -> None:
 		if not self._cfg.active:
