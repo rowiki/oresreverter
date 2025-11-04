@@ -14,11 +14,11 @@ import time
 def initialize_cronjobs(cfg: BotConfig, dry_run: bool):
 	cronjobs={}
 	for cronjob in cfg.cronjobs_interval_minutes:
-		generator_func = globals().get(f"{cronjob}_generator")
 		if 'blp' in cronjob and cfg.enabled_tools['blp_remove']:
-			cronjobs[cronjob] = BLPBot(dry_run=dry_run, generator=generator_func())
+			cronjobs[cronjob] = BLPBot(cronjob, dry_run=dry_run)
 		elif 'protected' in cronjob and cfg.enabled_tools['page_protection']:
-			cronjobs[cronjob] = ProtectionBot(dry_run=dry_run, generator=generator_func())
+			cronjobs[cronjob] = ProtectionBot(cronjob, dry_run=dry_run)
+		cronjobs[cronjob].setup()
 
 	return cronjobs
 
@@ -64,13 +64,13 @@ def single_run():
 	while True:
 		try:
 			# start with cronjobs if any
+			cfg.load_config()
 			for cron in cronjobs:
 				if cron in cfg.cronjobs_interval_minutes:
 					interval = cfg.cronjobs_interval_minutes[cron]
 					if (time.time() - cronjobs[cron].last_run) < interval * 60:
 						continue
 					pywikibot.output(f"Running cronjob {cron}")
-					cfg.load_config()
 					cronjobs[cron].run()
 					cronjobs[cron].last_run = time.time()
 			# then continue with recent changes

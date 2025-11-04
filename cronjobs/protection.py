@@ -38,9 +38,9 @@ class ProtectionBot(SingleSiteBot):
     A bot to check and update page protections
     """
 
-    def __init__(self, dry_run=False, **kwargs: Any) -> None:
+    def __init__(self, cronjob, dry_run=False, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        #self.site = pywikibot.Site()
+        self._cronjob = cronjob
         self._dry_run = dry_run
         self.last_run = 0
         self.protection_levels = [ '', 'autoconfirmed', 'extendedconfirmed', 'templateeditor', 'sysop' ]
@@ -53,6 +53,12 @@ class ProtectionBot(SingleSiteBot):
                         ]
         self.simple_template = '{{Protejat}}'
         self.small_template = '{{Protejat|small=yes}}'
+
+    def setup(self) -> None:
+        # reset generator for new run
+        self.generator_completed = False
+        generator_func = globals().get(f"{self._cronjob}_generator")
+        self.generator = generator_func()
 
     def treat(self, page: pywikibot.Page) -> None:
         if (not page.exists() or page.isRedirectPage() or

@@ -85,12 +85,19 @@ def add_blp(talk_page: pywikibot.Page) -> None:
 
 
 class BLPBot(SingleSiteBot):
-    def __init__(self, dry_run=None, site=pywikibot.Site("wikidata", "wikidata"), generator=None):
+    def __init__(self, cronjob, dry_run=None, site=pywikibot.Site("wikidata", "wikidata"), generator=None):
         super(SingleSiteBot, self).__init__(
             generator=generator, site=site)
+        self._cronjob = cronjob
         self._dry_run = dry_run
         self._site = site
         self.last_run = 0
+
+    def setup(self) -> None:
+        # reset generator for new run
+        self.generator_completed = False
+        generator_func = globals().get(f"{self._cronjob}_generator")
+        self.generator = generator_func()
 
     def treat(self, item: Any) -> None:
         sitelink = item.getSitelink('rowiki', True)
