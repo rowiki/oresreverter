@@ -62,7 +62,7 @@ class ProtectionBot(SingleSiteBot):
 
     def treat(self, page: pywikibot.Page) -> None:
         if (not page.exists() or page.isRedirectPage() or
-                page.namespace() in [2, 828] or page.namespace() % 2 == 1 or
+                page.namespace() in [2, 8, 828] or page.namespace() % 2 == 1 or
                 page.title().endswith('.js') or
                 page.title().endswith('.css')):
             return
