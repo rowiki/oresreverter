@@ -86,7 +86,7 @@ class Change(object):
 			#pywikibot.output(f"|-\n| [[Special:Diff/{self._revid}|{self._title}]] || || ")
 			return
 		
-        if not self.article.has_permission("edit"):
+		if not self.article.has_permission("edit"):
 			pywikibot.error(f"Found revert candidate: [[{self._title}]]@{self._revid} ({self._model.get_name()} score={self.score}) but have no rights to revert")
 
 		user = self._user.username
