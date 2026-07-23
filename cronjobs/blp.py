@@ -99,6 +99,12 @@ class BLPBot(SingleSiteBot):
         generator_func = globals().get(f"{self._cronjob}_generator")
         self.generator = generator_func()
 
+    def skip_page(self, page):
+        if not page.has_permission("edit"):
+            pywikibot.error(f"No rights to edit {page.title()}")
+            return True
+        return super().skip_page(page)
+
     def treat(self, item: Any) -> None:
         sitelink = item.getSitelink('rowiki', True)
         tp = pywikibot.Page(pywikibot.Site(), sitelink).toggleTalkPage()

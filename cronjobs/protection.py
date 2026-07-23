@@ -60,6 +60,12 @@ class ProtectionBot(SingleSiteBot):
         generator_func = globals().get(f"{self._cronjob}_generator")
         self.generator = generator_func()
 
+    def skip_page(self, page):
+        if not page.has_permission("edit"):
+            pywikibot.error(f"No rights to edit {page.title()}")
+            return True
+        return super().skip_page(page)
+
     def treat(self, page: pywikibot.Page) -> None:
         if (not page.exists() or page.isRedirectPage() or
                 page.namespace() in [2, 8, 828] or page.namespace() % 2 == 1 or
