@@ -186,7 +186,7 @@ class Change(object):
 			if score >= langid.threshold:
 				tag = f"{{{{de tradus|{{{{nume limbă|{prediction}}}}}}}}}"
 				if self._article.namespace() == 10:
-					tag = "<noinclude>" + tag + "</noinclude>
+					tag = "<noinclude>" + tag + "</noinclude>"
 				self.tag_article(tag, "limbă greșită")
 
 	def treat(self) -> None:
