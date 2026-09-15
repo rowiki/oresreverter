@@ -184,7 +184,10 @@ class Change(object):
 		if prediction != self._site.lang:
 			pywikibot.output(f"New article {self._title} is in language {prediction} (score {score})")
 			if score >= langid.threshold:
-				self.tag_article(f"{{{{de tradus|{{{{nume limbă|{prediction}}}}}}}}}", "limbă greșită")
+				tag = f"{{{{de tradus|{{{{nume limbă|{prediction}}}}}}}}}"
+				if self._article.namespace() == 10:
+					tag = "<noinclude>" + tag + "</noinclude>
+				self.tag_article(tag, "limbă greșită")
 
 	def treat(self) -> None:
 		if not self._cfg.active:
