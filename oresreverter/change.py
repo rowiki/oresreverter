@@ -170,7 +170,7 @@ class Change(object):
 		langid = LangIdConfig()
 		text = self._article.text
 		wikicode = mwparserfromhell.parse(text)
-		to_check = wikicode.strip_code(keep_template_params=True)
+		to_check = wikicode.strip_code()
 		if len(to_check) < 100: # code is too short for a reliable ID
 			return
 		# langdetect model, decent
